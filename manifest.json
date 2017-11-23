@@ -1,5 +1,5 @@
 {
-      "image": "shaikimranashrafi/centos:latest",
+      "image": "shaikimranashrafi/httpd:${BRANCH_NAME}",
       "restart": "always",
       "ExposedPorts": {
     	"80/tcp": {}

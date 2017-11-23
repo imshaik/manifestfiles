@@ -1,5 +1,5 @@
 {
-      "image": "shaikimranashrafi/httpd:${BRANCH_NAME}",
+      "image": "shaikimranashrafi/httpd:branch",
       "restart": "always",
       "ExposedPorts": {
     	"80/tcp": {}

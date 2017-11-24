@@ -1,0 +1,19 @@
+{
+      "image": "shaikimranashrafi/httpd:branch",
+      "restart": "always",
+      "Cmd": [
+                "/root/httpd.sh"
+            ],
+      "ExposedPorts": {
+    	"80/tcp": {}
+  	},
+      "HostConfig": {
+        "PortBindings": {
+          "80/tcp": [
+        {
+          "HostPort": "80"
+        }
+      ]
+    }
+ }
+}

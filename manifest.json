@@ -1,6 +1,9 @@
 {
       "image": "shaikimranashrafi/httpd:branch",
       "restart": "always",
+      "Cmd": [
+                "/root/httpd.sh"
+            ],
       "ExposedPorts": {
     	"80/tcp": {}
   	},

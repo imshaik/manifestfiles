@@ -1,0 +1,93 @@
+#!/bin/env groovy
+
+import groovy.json.*
+import java.lang.*;
+import groovy.lang.*;
+
+try
+{
+    node('JenkinsSlave')
+    {
+        def reponame    = "manifestfiles"
+	def environment	= "http://192.168.77.129:4000/containers"
+	def github	= "https://github.com/imshaik"
+		
+	stage('Clean workspace')
+        {
+		deleteDir()
+        }
+        
+        stage('Pull the source code from GitHub')
+        {
+            git branch: 'master', credentialsId: 'Github', url: "${github}/${reponame}.git"
+        }
+        
+        stage('Replacing the branch name')
+        {
+            dir('manifestfiles')
+            {
+                sh "sed -i 's|branch|${env.BRANCH_NAME}|g' manifest.json"
+				sh "cat manifest.json"
+				
+                /*def file = new File('manifest.json')
+                file.text = file.text.replace('branch', '${env.BRANCH_NAME}')*/
+            }
+        }
+        stage('Deploying container onto the environment')
+        {
+		dir('manifestfiles')
+		{
+			    			
+			/* def URL = "curl -X POST -H 'Content-Type: application/json' -d '@manifest.json'" + url"
+			def deploy = URL.execute();
+			def outputStream = new StringBuffer();
+			deploy.waitForProcessOutput(outputStream, System.err)
+			return outputStream.toString(); 
+			//CURL uses error output stream for progress output.
+			proc.start { System.err << deploy.err };
+			//Wait until cURL process finished and continue with the loop.
+			proc.waitFor();
+			def response = ["curl", "-k", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@manifest.json", "http://192.168.77.129:4000/containers/create?name=httpd"].execute() */
+				
+			def deploy = sh "curl --keepalive-time 900 --max-time 900 -o /dev/null -X POST -H 'Content-Type: application/json' --write-out '%{http_code}' -d '@manifest.json' ${environment}/create?name=httpd"
+			//def start  = sh "curl -X POST -H 'Content-Type: application/json' --write-out '%{http_code}' -d '{}' ${environment}/httpd/start"
+			//def outputStream = new StringBuffer();
+			//deploy.waitForProcessOutput(outputStream, System.err);
+			//return outputStream.toString(); return will be used when we use functions
+		}	
+        }
+	stage('Starting container onto the environment with docker-compose')
+	{
+		sshagent (credentials: ['Jenkins-deploy']) 
+		{
+			sh 'ssh -o StrictHostKeyChecking=no 192.168.77.129 uname -a'
+		}
+	}
+						
+	stage('Checks if environment is up or down')
+	{
+		/* def ENV_URL = "http://192.168.77.129:80"
+		STATUS = sh(
+		returnStdout: true, 
+		script: "curl -I ${ENV_URL} 2>/dev/null | head -n 1 | cut -d ' ' -f2"
+			).trim()
+		//echo "status code is: ${STATUS}"
+		println "status code is: " + STATUS
+			
+		sh """
+		STATUS=${curl -I http://192.168.77.129:80 2>/dev/null | head -n 1 | awk '{print $2}'}
+		echo Status code is ${STATUS}
+		""" */
+	}
+
+        stage ('Archive the .json Files')
+        {
+		    archiveArtifacts artifacts: 'manifestfiles/*.json', fingerprint: true
+	}
+    }
+}
+
+catch(err)
+{
+    throw(err)
+}
